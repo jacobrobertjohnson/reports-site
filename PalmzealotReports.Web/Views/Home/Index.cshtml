@@ -1,0 +1,32 @@
+﻿@model PalmzealotReports.Web.Models.FormListViewModel
+
+@{
+    ViewData["Title"] = "Form List";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Form</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (FormListItemViewModel form in Model.Forms)
+        {
+            <tr>
+                <td>@form.Name</td>
+                <td>
+                    <a target="_blank" href="@form.EditLink">Edit Form</a>
+                    <a target="_blank" href="@form.ResponderLink">Fill Out Form</a>
+                    <a target="_blank" asp-controller="Print" asp-action="Index" asp-route-id="@form.Id">Print Signin Sheet</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
