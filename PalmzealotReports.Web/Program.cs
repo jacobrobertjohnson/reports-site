@@ -1,5 +1,6 @@
 using Google.Apis.Auth.AspNetCore3;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using PalmzealotReports.Web.Config;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,15 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+var forwarded = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
+};
+// If behind a single known proxy you can add its IP; otherwise clear defaults when trust is already implied:
+forwarded.KnownIPNetworks.Clear();
+forwarded.KnownProxies.Clear();
+app.UseForwardedHeaders(forwarded);
 
 app.UseHttpsRedirection();
 app.UseRouting();
