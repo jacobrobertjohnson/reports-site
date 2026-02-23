@@ -1,5 +1,6 @@
 using Google.Apis.Auth.AspNetCore3;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using PalmzealotReports.Web.Config;
 
@@ -25,6 +26,18 @@ builder.Services
         o.ClientId = appSettings.Auth.ClientId;
         o.ClientSecret = appSettings.Auth.ClientSecret;
 
+        o.Events = new OpenIdConnectEvents()
+        {
+            OnRedirectToIdentityProvider = context =>
+            {
+                context.ProtocolMessage.RedirectUri = "https://"
+                    + context.HttpContext.Request.Host
+                    + "/signin-oidc";
+                    
+                return Task.CompletedTask;
+            }   
+        };
+
         // https://developers.google.com/identity/protocols/oauth2/scopes#forms
         foreach (string scope in appSettings.Auth.Scopes)
             o.Scope.Add(scope);
@@ -34,7 +47,7 @@ var app = builder.Build();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
 });
 
 // Configure the HTTP request pipeline.
