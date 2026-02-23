@@ -32,10 +32,9 @@ builder.Services
 
 var app = builder.Build();
 
-app.Use((context, next) =>
+app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    context.Request.Scheme = "https";
-   return next(); 
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
 // Configure the HTTP request pipeline.
@@ -46,14 +45,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// var forwarded = new ForwardedHeadersOptions
-// {
-//     ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
-// };
-// // If behind a single known proxy you can add its IP; otherwise clear defaults when trust is already implied:
-// forwarded.KnownIPNetworks.Clear();
-// forwarded.KnownProxies.Clear();
-// app.UseForwardedHeaders(forwarded);
 
 app.UseHttpsRedirection();
 app.UseRouting();
