@@ -1,5 +1,7 @@
 using Google.Apis.Auth.AspNetCore3;
 using Mapster;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PalmzealotReports.Web.Config;
@@ -13,6 +15,11 @@ public class HomeController(
     AppSettings _appSettings
 ) : Controller
 {
+    // [AllowAnonymous]
+    // public IActionResult Login()
+    // {
+    //     return Challenge(new AuthenticationProperties { RedirectUri = "/" }, GoogleOpenIdConnectDefaults.AuthenticationScheme);
+    // }
 
     public async Task<IActionResult> Index(CancellationToken ct)
     {

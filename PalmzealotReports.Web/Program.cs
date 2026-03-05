@@ -1,6 +1,7 @@
 using Google.Apis.Auth.AspNetCore3;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using PalmzealotReports.Web.Config;
 
@@ -20,12 +21,27 @@ builder.Services
         o.DefaultForbidScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
         o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     })
-    .AddCookie()
+    .AddCookie(options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    })
     .AddGoogleOpenIdConnect(o =>
     {
         o.ClientId = appSettings.Auth.ClientId;
         o.ClientSecret = appSettings.Auth.ClientSecret;
 
+        // Use the standard callback path; let ASP.NET Core middleware handle redirection
+        o.CallbackPath = new PathString("/signin-oidc");
+        o.SaveTokens = true;
+        
+        // Ensure correlation and nonce cookies preserve SameSite=None for cross-site OAuth flow
+        o.NonceCookie.SameSite = SameSiteMode.None;
+        o.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+        o.CorrelationCookie.SameSite = SameSiteMode.None;
+        o.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+
+        // App is behind a reverse proxy that terminates HTTPS; manually set redirect URI to use https
         o.Events = new OpenIdConnectEvents()
         {
             OnRedirectToIdentityProvider = context =>
@@ -35,7 +51,22 @@ builder.Services
                     + "/signin-oidc";
                     
                 return Task.CompletedTask;
-            }   
+            },
+            OnMessageReceived = context =>
+            {
+                // On callback, also set the expected redirect_uri to HTTPS so validation matches
+                // what we told Google it should be
+                context.ProtocolMessage.RedirectUri = "https://"
+                    + context.HttpContext.Request.Host
+                    + "/signin-oidc";
+                    
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                System.Console.WriteLine($"OAuth Auth Failed: {context.Exception?.Message}");
+                return Task.CompletedTask;
+            }
         };
 
         // https://developers.google.com/identity/protocols/oauth2/scopes#forms
@@ -58,8 +89,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-
-app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();
