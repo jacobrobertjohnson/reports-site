@@ -4,15 +4,11 @@
     ViewData["Title"] = "Form List";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-</div>
-
-<table>
-    <thead>
+<table class="table">
+    <thead class="thead-dark">
         <tr>
             <th>Form</th>
-            <th>Actions</th>
+            <th class="text-end">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -20,10 +16,12 @@
         {
             <tr>
                 <td>@form.Name</td>
-                <td>
-                    <a target="_blank" href="@form.EditLink">Edit Form</a>
-                    <a target="_blank" href="@form.ResponderLink">Fill Out Form</a>
-                    <a target="_blank" asp-controller="Print" asp-action="Index" asp-route-id="@form.Id">Print Signin Sheet</a>
+                <td class="text-end">
+                    <div class="d-grid gap-1 d-md-block">
+                        <a class="btn btn-primary" target="_blank" href="@form.EditLink">Edit Form</a>
+                        <a class="btn btn-primary" target="_blank" href="@form.ResponderLink">Fill Out Form</a>
+                        <a class="btn btn-primary" target="_blank" asp-controller="Print" asp-action="Index" asp-route-id="@form.Id">Print Signin Sheet</a>
+                    </div>
                 </td>
             </tr>
         }
