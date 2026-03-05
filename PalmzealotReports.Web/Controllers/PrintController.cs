@@ -3,7 +3,6 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Forms.v1;
 using Google.Apis.Forms.v1.Data;
 using Google.Apis.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using PalmzealotReports.Web.Config;
 using PalmzealotReports.Web.Enums;
@@ -56,18 +55,41 @@ public class PrintController(
 
         return View(new FormPrintViewModel()
         {
-            Header = string.Join("<br />", form.Header)
-                .Replace("{year}", $"{DateTime.Now:yyyy}")
-                .Replace("{monthName}", $"{DateTime.Now:MMMM}")
-                .Replace("{weekday}", $"{DateTime.Now:dddd}")
-                .Replace("{dayOfMonth}", $"{DateTime.Now.Day}"),
+            Header = MakeHeader(form),
             
             Filename = form.Filename.Replace("{datestampYYYY-MM-DD}", $"{DateTime.Now:yyyy-MM-dd}"),
 
             Classes = [..form.Columns.Select(c => c.CellClass)],
             Columns = [..form.Columns.Select(c => c.Heading)],
-            Rows = rows.ToArray(),
+            Rows = SortRows(form.Columns, rows).ToArray(),
         });
+    }
+
+    private string MakeHeader(FormConfig form)
+        => string.Join("<br />", form.Header)
+            .Replace("{weekday}", $"{DateTime.Now:dddd}")
+            .Replace("{monthName}", $"{DateTime.Now:MMMM}")
+            .Replace("{dayOfMonth}", $"{DateTime.Now.Day}")
+            .Replace("{year}", $"{DateTime.Now:yyyy}");
+
+    private IEnumerable<string[]> SortRows(Column[] columns, List<string[]> rows)
+    {
+        IEnumerable<int> sortCols = columns
+            .Where(c => c.SortPriority > 0)
+            .OrderBy(c => c.SortPriority)
+            .Select((_, i) => i);
+
+        IOrderedEnumerable<string[]> sorted = rows.OrderBy(r => 0);
+
+        foreach (int sortCol in sortCols)
+        {
+            if (sortCol == sortCols.First())
+                sorted = rows.OrderBy(r => r[sortCol]);
+            else
+                sorted = sorted.ThenBy(r => r[sortCol]);
+        }
+
+        return sorted;
     }
 
     private async Task<FormsResource> GetFormsResourceAsync(CancellationToken ct)

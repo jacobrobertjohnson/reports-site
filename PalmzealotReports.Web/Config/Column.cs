@@ -8,4 +8,5 @@ public class Column
     public string Heading { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
     public string CellClass { get; set; } = "";
+    public int SortPriority { get; set; } = 0;
 }
