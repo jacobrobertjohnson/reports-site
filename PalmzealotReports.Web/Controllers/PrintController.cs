@@ -61,7 +61,9 @@ public class PrintController(
 
             Classes = [..form.Columns.Select(c => c.CellClass)],
             Columns = [..form.Columns.Select(c => c.Heading)],
-            Rows = SortRows(form.Columns, rows).ToArray(),
+            Rows = SortRows(form.Columns, rows)
+                .DistinctBy(r => string.Join(",", r))
+                .ToArray(),
         });
     }
 
